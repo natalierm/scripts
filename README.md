@@ -30,8 +30,8 @@ Used to test network ports between two machines.
 
 Go to the server and run:
 
-network_test_server <port1> <port2>
+network_test_server port1 port2
 
 Go to the client and run:
 
-network_test_client <server ip> <port1> <port2>
+network_test_client server_ip port1 port2
