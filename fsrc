@@ -1,0 +1,51 @@
+#!/bin/sh
+
+function usage () {
+	echo "Usage:"
+	echo "fsrc [-i -p<path>] <pattern> [filetype1 [filetype2...[filetypeN]]]"
+	echo "	-i		Case insensitive search"
+	echo "	-p<path>	The path to search (default .)"
+	echo "	pattern		a regexp to search for in the specified files"
+	echo "	filetype	The string to pass to find -name (default *.[ch])"
+}
+
+nocase=
+_PATH=.
+FILETYPES='-name "*.[ch]" -or -name "*.hpp" -or -name "*.cpp" -or -name "*.java" -or -name "*.coffee"'
+
+while getopts 'ip:' opt "$@"
+do
+	case "$opt" in
+	i) nocase="-i";		;;
+	p) _PATH="$OPTARG";	;;
+	*) break ;;
+	esac
+done
+
+shift `expr $OPTIND - 1`
+
+if [ "$#" == "0" ]; then
+	echo "ERROR: You must input a pattern to search for."
+	usage
+	exit 1
+else
+	PATTERN=$1
+fi
+
+shift
+
+if [ $# -gt 0 ]; then
+	FILETYPES="-name \"$1\""
+fi
+
+shift
+
+while [ $# -gt 0 ]; do
+	FILETYPES="$FILETYPES -or -name \"$1\""
+	shift
+done
+
+FILETYPES="\\( $FILETYPES \\)"
+
+
+eval "/usr/bin/find \"$_PATH\" $FILETYPES -and -type f -and -exec fsrc_helper $nocase \"$PATTERN\" \"{}\" ';'"

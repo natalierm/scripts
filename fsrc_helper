@@ -1,0 +1,44 @@
+#!/bin/sh
+
+function output_n () {
+	RESULT_STRING=
+	STRING="$1"
+	if [ "$2" != "" ]; then
+		COUNT="$2"
+	else
+		COUNT=1
+	fi
+
+	while [ "$COUNT" -gt "0" ]; do
+		COUNT=`expr "$COUNT" - 1`
+		RESULT_STRING="${RESULT_STRING}$STRING"
+	done
+
+	printf "$RESULT_STRING"
+}
+
+nocase=
+
+while getopts 'i' opt "$@"; do
+	case "$opt" in
+	i) nocase="-i";		;;
+	*) break	;;
+	esac
+done
+
+shift `expr $OPTIND - 1`
+
+RESULT=`grep $nocase -n -e "$1" "$2"`
+GREP_RESULT=$?
+
+if [ "$RESULT" != "" ]; then
+	RESULT_LEN=`printf ${2} | wc -c`
+	HEADER=`output_n '=' $RESULT_LEN`
+	echo "$HEADER"
+	echo "${2}"
+	echo "$HEADER"
+	echo "$RESULT"
+	echo ""
+
+fi
+exit $GREP_RESULT

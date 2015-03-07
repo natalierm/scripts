@@ -1,0 +1,134 @@
+#!/bin/bash
+SSH_KEY_LOCATION="$HOME/.ssh"
+
+QUIET=
+
+Options=$@
+Optnum=$#
+
+# aws ec2 describe-instances --filters 'Name=tag:Name,Values=Matt*' --query 'Reservations[*].Instances[*].State.Name' --output text
+
+_usage() {
+cat <<EOF
+ cloud $Options
+$*
+        Usage: cloud [options] command [command options]
+        Options:
+          -q      be quiet
+
+        Commands:
+          list    list all available EC2 instances
+          instanceid <name> of the specified EC2 instance
+          running <name> return whether the named EC2 instance is running or not
+          q <query> <name> return a query on the EC2 instance name.  The query is started from Reservations[*].Instances[*]
+          show <name> show the information associated with the specifid eC2 instance
+          start <name> start the named instance
+          stop <name> stop the named instance
+          ssh <name> exec ssh to the named instance (assumes the key is in .ssh in your home directory)
+
+EOF
+}
+
+qecho() {
+  if [ "$QUIET" == "" ]; then
+    echo $@
+  fi
+}
+
+list_aws() {
+	aws ec2 describe-instances --query 'Reservations[*].Instances[*].Tags[?Key==`Name`].Value' --output text
+}
+
+instanceid_aws() {
+  Name=$@
+  aws ec2 describe-instances --filters "Name=tag:Name,Values=$Name" --query 'Reservations[*].Instances[*].InstanceId' --output text
+}
+
+running_aws() {
+  Name="$@"
+	STATUS=`aws ec2 describe-instances --filters "Name=tag:Name,Values=$Name" --query 'Reservations[*].Instances[*].State.Name' --output text`
+
+  qecho $STATUS
+
+  if [ "$STATUS" == "running" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+q_aws() {
+  Query=$1
+  shift
+  Name="$@"
+  aws ec2 describe-instances --filters "Name=tag:Name,Values=$Name" --query "Reservations[*].Instances[*].$Query" --output text
+}
+
+show_aws() {
+  Name="$@"
+  aws ec2 describe-instances --filters "Name=tag:Name,Values=$Name" --query "Reservations[*].Instances[*]"
+}
+
+status_aws() {
+  q_aws "State.Name" "$@"
+}
+
+start_aws() {
+  Name="$@"
+  OLDQUIET=$QUIET
+  QUIET=1
+  if running_aws "$Name"; then
+    QUIET=$OLDQUIET
+    qecho "Already started"
+  fi
+  INSTANCE=`instanceid_aws $Name`
+  OUTPUT=`aws ec2 start-instances --instance-ids $INSTANCE`
+
+  qecho $OUTPUT
+}
+
+stop_aws() {
+  Name="$@"
+  INSTANCE=`instanceid_aws $Name`
+  aws ec2 stop-instances --instance-ids $INSTANCE
+}
+
+
+ssh_aws() {
+  OLDQUIET=$QUIET
+  QUIET=1
+  start_aws "$@"
+  QUIET=$OLDQUIET
+
+  KEY=${SSH_KEY_LOCATION}/`q_aws KeyName "$@"`.pem
+  UNAME="ubuntu"
+  SERVERNAME=`q_aws PublicDnsName "$@"`
+
+  COMMAND="ssh -i $KEY $UNAME@$SERVERNAME"
+
+  qecho $COMMAND
+
+  exec $COMMAND
+
+}
+
+while getopts ':q' OPTION ; do
+  case "$OPTION" in
+    q) QUIET=1 ;;
+    \?) _usage ;;
+  esac
+done
+
+shift $((OPTIND-1))
+
+COMMAND=$1
+
+shift
+
+if [ "$COMMAND" == "" ]; then
+  _usage
+  exit 1
+fi
+
+${COMMAND}_aws $@
+
