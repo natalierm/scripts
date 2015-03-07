@@ -1,0 +1,81 @@
+#!/bin/bash
+
+# server implementation
+
+function nc_server_test {
+  nc -l $1 &> /dev/null
+}
+
+function test_server_network {
+  # build up the list of listeners
+
+  # some generic job control functions
+  function job_cleanup {
+
+    echo "Early termination signalled.  Killing everything and at least one test failed"
+    job_kill
+    job_wait
+
+    exit 0
+  }
+
+  function job_wait {
+    for i in "${!job_array[@]}"; do
+      if wait "${job_array[i]}"; then
+        echo "${port_array[i]} succeeded"
+      else
+        echo "${port_array[i]} failed"
+      fi
+    done
+  }
+
+  function job_kill {
+    for i in "${!job_array[@]}"; do
+      kill ${job_array[i]}
+    done
+  }
+
+  # clean everything up and output a status on ctrl-c
+  trap job_cleanup SIGINT
+
+  echo "$1"
+
+  NETWORK_TESTING_PORTS="$1"
+  echo "$NETWORK_TESTING_PORTS"
+  IFS=' ' read -a port_array <<< "$NETWORK_TESTING_PORTS"
+
+  declare -a job_array
+
+  for i in "${!port_array[@]}"; do
+    nc_server_test ${port_array[i]} &
+    job_array[$i]="${!}"
+  done
+
+
+  for i in "${!job_array[@]}"; do
+    echo "port: ${port_array[i]} process: ${job_array[i]}"
+  done
+
+  # This will wait until the user hits ctrl-c
+  echo "We will sleep until you terminate by hitting ctrl-c"
+  sleep 100000000
+}
+
+function process_test {
+  JOBS=
+  for i in `seq 1 2`; do
+    sleep 1 &
+    JOBS="$JOBS ${!}"
+  done
+
+  sleep 2
+
+  for i in $JOBS; do
+    wait $i
+    echo $?
+  done
+}
+
+test_server_network "$1"
+
+

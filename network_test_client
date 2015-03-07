@@ -1,0 +1,32 @@
+#!/bin/bash
+
+function nc_client_test {
+  if nc -z $1 $2 &> /dev/null; then
+    echo "Succeeded"
+  else
+    echo "failed"
+  fi
+}
+
+function ping_client_test {
+  PING_WAIT=2
+  PING_COUNT=1
+  if `ping -W ${PING_WAIT} -c ${PING_COUNT} $h > /dev/null 2> /dev/null`; then
+    echo 'ping succeeded!!'
+  else
+    echo 'ping failed!!'
+  fi
+}
+
+function test_client_network {
+  export h=$1
+
+  NETWORK_TESTING_PORTS="$2"
+
+  for i in $NETWORK_TESTING_PORTS; do
+    nc_client_test $h $i
+  done
+
+}
+
+test_client_network "$1" "$2"
