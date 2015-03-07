@@ -1,0 +1,12 @@
+#!/bin/sh
+# THREE_MONTHS=`expr 60 \* 60 \* 24 \* 30 \* 3`
+THREE_MONTHS=`expr 60 \* 60 \* 24 \* 15` # 30 \* 3`
+FILE_CHANGED=`stat -f%m "$1"`
+FILE_SIZE=`stat -f%z "$1"`
+BIG_FILE=`expr 10 \* 1024 \* 1024`
+
+MONTHS_AGO=`expr \`date +%s\` - $THREE_MONTHS`
+# echo $MONTHS_AGO
+# echo $FILE_CHANGED
+
+expr $FILE_CHANGED \< $MONTHS_AGO >/dev/null && expr $FILE_SIZE \> $BIG_FILE > /dev/null
