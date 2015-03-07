@@ -1,0 +1,3 @@
+LDAP="ldap://some.adserver.somewhere"
+SEARCHBASE='DC=somead,DC=net,DC=local'
+USERNAME='CORPAD\user'

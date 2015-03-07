@@ -17,3 +17,7 @@ A script for finding words in source files
 Find files that haven't been used for a long time and are using a lot of space:
 
 find . -exec old_and_big {} \; -and -print
+
+# ad_search 
+
+Search for a username in an active directory

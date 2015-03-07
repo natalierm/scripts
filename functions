@@ -1,0 +1,8 @@
+#!/bin/bash
+
+config_filename () {
+  echo "$1".conf
+}
+
+CONF_FILE=$(config_filename $0)
+test -e "$CONF_FILE" && . "$CONF_FILE"

@@ -1,0 +1,13 @@
+#!/bin/sh
+
+. functions
+
+if [ "$1" == "" ]; then
+	echo "You need to provide a username to search for."
+	exit 1
+fi
+
+RETURN=$2
+
+ldapsearch -LLL -x -H $LDAP -b $SEARCHBASE -D $USERNAME -W "(sAMAccountName=${1}*)" $RETURN
+
