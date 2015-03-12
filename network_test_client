@@ -2,10 +2,23 @@
 
 function nc_client_test {
   if nc -z $1 $2 &> /dev/null; then
-    echo "Succeeded"
+    echo -e "$1:$2\tSucceeded"
   else
-    echo "failed"
+    echo -e "$1:$2\tfailed"
   fi
+}
+
+function test_client_network {
+  NETWORK_TEST_HOSTS="$1"
+
+  NETWORK_TESTING_PORTS="$2"
+
+  for h in $NETWORK_TEST_HOSTS; do
+    for i in $NETWORK_TESTING_PORTS; do
+      nc_client_test $h $i
+    done
+  done
+
 }
 
 function ping_client_test {
@@ -16,17 +29,6 @@ function ping_client_test {
   else
     echo 'ping failed!!'
   fi
-}
-
-function test_client_network {
-  export h=$1
-
-  NETWORK_TESTING_PORTS="$2"
-
-  for i in $NETWORK_TESTING_PORTS; do
-    nc_client_test $h $i
-  done
-
 }
 
 test_client_network "$1" "$2"
