@@ -12,19 +12,36 @@ _usage() {
 cat <<EOF
  cloud $Options
 $*
-        Usage: cloud [options] command [command options]
-        Options:
-          -q      be quiet
+    Usage: cloud [options] command [command options]
 
-        Commands:
-          list    list all available EC2 instances
-          instanceid <name> of the specified EC2 instance
-          running <name> return whether the named EC2 instance is running or not
-          q <query> <name> return a query on the EC2 instance name.  The query is started from Reservations[*].Instances[*]
-          show <name> show the information associated with the specifid eC2 instance
-          start <name> start the named instance
-          stop <name> stop the named instance
-          ssh <name> exec ssh to the named instance (assumes the key is in .ssh in your home directory)
+    Options:
+        -q      be quiet
+
+    Commands:
+      list                list all available EC2 instances
+
+      instanceid <name>   get the instance id of the specified EC2 instance
+
+      running <name>      return whether the named EC2 instance is running or
+                          not
+
+      q <query> <name>    return a query on the EC2 instance name.  The query is
+                          started from Reservations[*].Instances[*] and is a
+                          JMESPath (jmespath.org)
+
+      show <name>         show the information associated with the specifid eC2
+                          instance.  This just shows the complete JSON structure
+                          associated with the instance
+
+      start <name>        start the named instance
+
+      status <name>       show whether the instance is running, stopped or
+                          terminated
+
+      stop <name>         stop the named instance
+
+      ssh <name>          exec ssh to the named instance (assumes the key is in
+                          .ssh in your home directory)
 
 EOF
 }
