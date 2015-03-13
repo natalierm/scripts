@@ -21,14 +21,23 @@ function test_client_network {
 
 }
 
-function ping_client_test {
+function ping_test {
   PING_WAIT=2
   PING_COUNT=1
-  if `ping -W ${PING_WAIT} -c ${PING_COUNT} $h > /dev/null 2> /dev/null`; then
-    echo 'ping succeeded!!'
+  if `ping -W ${PING_WAIT} -c ${PING_COUNT} $1 > /dev/null 2> /dev/null`; then
+    echo "$1 ping succeeded"
   else
-    echo 'ping failed!!'
+    echo "$1 ping failed"
   fi
+}
+
+function test_client_ping {
+  NETWORK_TEST_HOSTS="$1"
+
+  for h in $NETWORK_TEST_HOSTS; do
+    ping_test $h
+  done
+
 }
 
 test_client_network "$1" "$2"
