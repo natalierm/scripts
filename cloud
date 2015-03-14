@@ -58,12 +58,12 @@ list_aws() {
 
 instanceid_aws() {
   Name=$@
-  aws ec2 describe-instances --filters "Name=tag:Name,Values=$Name" --query 'Reservations[*].Instances[*].InstanceId' --output text
+  q_aws InstanceId "$Name"
 }
 
 running_aws() {
   Name="$@"
-	STATUS=`aws ec2 describe-instances --filters "Name=tag:Name,Values=$Name" --query 'Reservations[*].Instances[*].State.Name' --output text`
+	STATUS=$(q_aws State.Name "$@")
 
   qecho $STATUS
 
@@ -110,6 +110,7 @@ stop_aws() {
   aws ec2 stop-instances --instance-ids $INSTANCE
 }
 
+# guess the username to an image based on the name of the image.
 _username_from_image ()
 {
   image_name=$1
@@ -120,6 +121,7 @@ _username_from_image ()
   fi
 }
 
+# get the original image name of the AMI id.
 _image_from_amiid ()
 {
   imageid=$1
