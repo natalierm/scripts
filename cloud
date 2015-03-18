@@ -147,6 +147,28 @@ ssh_aws() {
 
 }
 
+key_aws() {
+  KEY=${SSH_KEY_LOCATION}/`q_aws KeyName "$@"`.pem
+  echo "$KEY"
+}
+
+addr_aws() {
+  SERVERNAME=`q_aws PublicDnsName "$@"`
+  echo $SERVERNAME
+}
+
+user_aws() {
+  UNAME=$(_username_from_image $(_image_from_amiid $(q_aws ImageId $@)))
+  echo $UNAME
+}
+
+scp_aws() {
+	filename="$1"
+	shift
+	scp -i $(cloud key "$@") "$filename" $(cloud user "$@")@$(cloud addr "$@"):
+}
+
+
 while getopts ':q' OPTION ; do
   case "$OPTION" in
     q) QUIET=1 ;;
