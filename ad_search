@@ -1,6 +1,6 @@
 #!/bin/sh
 
-. functions
+. $(dirname $0)/functions
 
 if [ "$1" == "" ]; then
 	echo "You need to provide a username to search for."
