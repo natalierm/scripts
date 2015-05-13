@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# echo $(stat -f %HT "$1")
+
+if [ "$(stat -f %HT $1)" == "Regular File" ]; then
+	dd if="$1" 2> /dev/null | pv --size $(stat -f %z $1)
+else
+	dd if="$1"
+fi
