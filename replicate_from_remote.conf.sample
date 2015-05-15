@@ -1,0 +1,13 @@
+#!/bin/bash
+REMOTE_HOST=plnxinfn022
+REMOTE_DIRS=( /data/atlassian/atlassian-confluence-5.0.2/ /data/atlassian/confluence/data/ )
+REMOTE_DB_NAME=confluence
+REMOTE_DB_UNAME=pgsql91
+LOCAL_FILE_USER=applications
+LOCAL_FILE_GROUP=applications
+LOCAL_DB_UNAME=pgsql91
+LOCAL_DB_BINDIR=/data/PostgreSQL/9.1/bin/
+LOCAL_DIRS=( /data/atlassian/atlassian-confluence-5.0.2 /data/atlassian/confluence/data ) 
+
+# DRY_RUN=-n
+# DRY_RUN=
