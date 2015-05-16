@@ -3,7 +3,7 @@
 . $(dirname $0)/functions
 
 if [ "${REMOTE_DB_UNAME}" = "" ]; then
-    echo "Couldn't find REMOTE_DB_NAME"
+    echo "Couldn't find DB_NAME"
     echo "Ensure you have created a configuration similar to the"
     echo "$(basename $0).conf.sample provided"
     exit
@@ -31,20 +31,18 @@ echo "Synchronising the directories"
 index=0
 for i in ${REMOTE_DIRS[@]}; do
     echo "Synchronising $i"
-    echo sudo mkdir -p ${LOCAL_DIRS[$index]}
-    echo sudo rsync -chavzP $DRY_RUN --stats "${REMOTE_USER}@${REMOTE_HOST}:$i" ${LOCAL_DIRS[$index]}
-    echo sudo chown -R ${LOCAL_FILE_USER}:${LOCAL_FILE_GROUP} ${LOCAL_DIRS[$index]}
+    sudo mkdir -p ${LOCAL_DIRS[$index]}
+    sudo rsync -chavzP $DRY_RUN --stats "${REMOTE_USER}@${REMOTE_HOST}:$i" ${LOCAL_DIRS[$index]}
+    sudo chown -R ${LOCAL_FILE_USER}:${LOCAL_FILE_GROUP} ${LOCAL_DIRS[$index]}
     ((index++))
 done
 
-exit 0
-
-TEMP_FILE=/data/tmp/data.$$.tmp
+TEMP_FILE=${TMPDIR}/data.$$.tmp
 echo Replicating database
 if pv -h > /dev/null; then
-    $LOCAL_DB_BINDIR/pg_dump -h $REMOTE_HOST -U $REMOTE_DB_UNAME -C $REMOTE_DB_NAME  | pv -trb > $TEMP_FILE
+    $LOCAL_DB_BINDIR/pg_dump -h $REMOTE_HOST -U $REMOTE_DB_UNAME -C $DB_NAME | pv -trb > $TEMP_FILE
 else
-    $LOCAL_DB_BINDIR/pg_dump -h $REMOTE_HOST -U $REMOTE_DB_UNAME -C $REMOTE_DB_NAME  > $TEMP_FILE
+    $LOCAL_DB_BINDIR/pg_dump -h $REMOTE_HOST -U $REMOTE_DB_UNAME -C $DB_NAME > $TEMP_FILE
 fi
 
 echo -e '\a'
@@ -52,29 +50,29 @@ echo -e '\a'
 echo -e '\a'
 echo -e '\a'
 
-echo "You are about to backup and drop the existing $LOCAL_DB_NAME database"
+echo "You are about to backup and drop the existing $DB_NAME database"
 echo "at this point"
 echo "Be careful!!"
 echo "Press enter to continue"
 read
 
-if psql -lqt | cut -d \| -f 1 | grep -w $LOCAL_DB_NAME; then
+if psql -lqt | cut -d \| -f 1 | grep -w $DB_NAME; then
     echo "DB Already exists.  Backing up"
-    TEMP_FILE2=/data/tmp/data.$$.tmp.2
+    TEMP_FILE2=${TMPDIR}/data.$$.tmp.2
     if pv -h > /dev/null; then
-        $LOCAL_DB_BINDIR/pg_dump -U $LOCAL_DB_UNAME -C $LOCAL_DB_NAME |pv -trb > $TEMP_FILE2
+        $LOCAL_DB_BINDIR/pg_dump -U $LOCAL_DB_UNAME -C $DB_NAME | pv -trb > $TEMP_FILE2
     else
-        $LOCAL_DB_BINDIR/pg_dump -U $LOCAL_DB_UNAME -C $LOCAL_DB_NAME  > $TEMP_FILE2
+        $LOCAL_DB_BINDIR/pg_dump -U $LOCAL_DB_UNAME -C $DB_NAME  > $TEMP_FILE2
     fi
     if [ "$?" = "1" ]; then
         echo "Couldn't back up DB cleanly - exiting."
     fi
-    $LOCAL_DB_BINDIR/dropdb -U $LOCAL_DB_UNAME $LOCAL_DB_NAME
+    $LOCAL_DB_BINDIR/dropdb -U $LOCAL_DB_UNAME $DB_NAME
 fi
 
 echo Restoring db locally
 if pv -h > /dev/null; then
-    pv $TEMP_FILE | sudo -u $LOCAL_DB_UNAME $LOCAL_DB_BINDIR/psql --set ON_ERROR_STOP=on $LOCAL_DB_NAME 
+    pv $TEMP_FILE | sudo -u $LOCAL_DB_UNAME $LOCAL_DB_BINDIR/psql -q --set ON_ERROR_STOP=on postgres
 else
-    sudo -u $LOCAL_DB_UNAME $LOCAL_DB_BINDIR/psql --set ON_ERROR_STOP=on $LOCAL_DB_NAME 
+    sudo -u $LOCAL_DB_UNAME $LOCAL_DB_BINDIR/psql -q --set ON_ERROR_STOP=on postgres
 fi
