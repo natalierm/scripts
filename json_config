@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Get configuration values from a json configuration file.
+# run as:
+# getValue <config_file> topLevel.depth1.depth2
+#
+
+function GetValue () {
+  VALUE=$(jq "{anything: .$2}|.[]" $1)
+  if [ "$VALUE" != "null" -a "$VALUE" != "" ]; then
+    VALUE="${VALUE%\"}"
+    VALUE="${VALUE#\"}"
+    echo $VALUE
+    return 0
+  fi
+  return 1
+}
